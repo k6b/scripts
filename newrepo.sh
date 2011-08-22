@@ -2,10 +2,18 @@
 # Creates a bare git repo in the current directory
 # uses a command line argument to name the repo
 # designed for server usage.
-echo "Must be run as root!"
-if [ $# -ne 3 ]; then                       # Echo usage if run empty
+if [[ $EUID -ne 0 ]]; then
+    echo "Must be run as root!!"
+    exit 
+fi
+if [ $1 -e "-help" ]; then
+    echo "This is a help message"
+    exit
+    else 
+if  [ $# -ne 3 ]; then                       # Echo usage if run empty
     echo "Usage: $(basename $0) reponame description export(yes/no)"
-    exit 1
+    exit
+fi
 fi
 
 mkdir ./$1.git                              # Make the new directory
