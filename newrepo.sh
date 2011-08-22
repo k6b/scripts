@@ -6,12 +6,30 @@ if [[ $EUID -ne 0 ]]; then
     echo "Must be run as root!!"
     exit 
 fi
-if [ $1 -e "-help" ]; then
-    echo "This is a help message"
+if [ "$1" == "--help" ]; then
+    echo ""
+    echo "          newrepo by Kyle Berry(k6b)             "
+    echo ""
+    echo "newrepo, creates bare git repos on the server with"
+    echo "a given name, and description and allows you to   "
+    echo "decide if you want the repo exported to gitweb. "
+    echo ""
+    echo "Usage: $(basename $0) reponame description export"
+    echo ""
+    echo "reponame:    single string, please omit .git"
+    echo "description: a description of the repo for gitweb"
+    echo "             you need to quote things longer than"
+    echo "             one word"
+    echo "export:      yes to export to gitweb, no to keep"
+    echo "             private"
+    echo ""
+    echo "  --help     display this help and exit"
+    echo ""
     exit
     else 
 if  [ $# -ne 3 ]; then                       # Echo usage if run empty
-    echo "Usage: $(basename $0) reponame description export(yes/no)"
+    echo "newrepo: missing operand"
+    echo "Try  $(basename $0) --help for more information."
     exit
 fi
 fi
