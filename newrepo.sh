@@ -20,5 +20,5 @@ if [ $3 = "yes" ]; then
 else
     echo "Not ok to export to gitweb"
 fi
-
+cd ..
 chown -R git:git ./$1.git
