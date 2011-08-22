@@ -2,7 +2,7 @@
 # Creates a bare git repo in the current directory
 # uses a command line argument to name the repo
 # designed for server usage.
-if [ UUID = 0 ]; then
+echo "Must be run as root!"
 if [ $# -ne 3 ]; then                       # Echo usage if run empty
     echo "Usage: $(basename $0) reponame description export(yes/no)"
     exit 1
@@ -23,6 +23,3 @@ else
 fi
 cd ..                                       # Go back one dir
 chown -R git:git ./$1.git                   # Change ownership to git
-else
-    echo "must run as root"
-    exit 1
