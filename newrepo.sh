@@ -2,7 +2,8 @@
 # Creates a bare git repo in the current directory
 # uses a command line argument to name the repo
 # designed for server usage.
-if [ $# -ne 3 ]; then #                      
+if [ UUID = 0 ]; then
+if [ $# -ne 3 ]; then                       # Echo usage if run empty
     echo "Usage: $(basename $0) reponame description export(yes/no)"
     exit 1
 fi
@@ -16,9 +17,12 @@ echo $2 > description                       # Set repo description
 
 if [ $3 = "yes" ]; then
     echo "Ok to export to gitweb"
-    touch "git-daemon-export-ok"
+    touch "git-daemon-export-ok"            # Allow gitweb if yes
 else
-    echo "Not ok to export to gitweb"
+    echo "Not ok to export to gitweb"       # No gitweb if no
 fi
-cd ..
-chown -R git:git ./$1.git
+cd ..                                       # Go back one dir
+chown -R git:git ./$1.git                   # Change ownership to git
+else
+    echo "must run as root"
+    exit 1
