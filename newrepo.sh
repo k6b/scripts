@@ -2,16 +2,15 @@
 # Creates a bare git repo in the current directory
 # uses a command line argument to name the repo
 # designed for server usage.
-
+#
 if [[ $EUID -ne 0 ]]; then
     echo "Must be run as root!!"
     exit 
 fi
 if [ "$1" == "--help" ]; then
-
     echo ""
     echo "          newrepo by Kyle Berry(k6b)             "
-    echo ""
+    echo "                  (C) 2011"
     echo "newrepo, creates bare git repos on the server with"
     echo "a given name, and description and allows you to   "
     echo "decide if you want the repo exported to gitweb. "
@@ -28,11 +27,12 @@ if [ "$1" == "--help" ]; then
     echo "  --help     display this help and exit"
     echo ""
     exit
-    else 
+else 
 if  [ $# -ne 3 ]; then                       # Echo usage if run empty
     echo "newrepo: missing operand"
     echo "Try  $(basename $0) --help for more information."
     exit
+fi
 fi
 fi
 
