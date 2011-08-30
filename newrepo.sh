@@ -2,11 +2,13 @@
 # Creates a bare git repo in the current directory
 # uses a command line argument to name the repo
 # designed for server usage.
+
 if [[ $EUID -ne 0 ]]; then
     echo "Must be run as root!!"
     exit 
 fi
 if [ "$1" == "--help" ]; then
+
     echo ""
     echo "          newrepo by Kyle Berry(k6b)             "
     echo ""
