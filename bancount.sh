@@ -3,4 +3,5 @@
 touch tmpfile
 awk '{if ($6=="Ban") {print $6"\t"$7}}' /var/log/fail2ban.log > tmpfile
 bans=$(cat tmpfile | wc -l)
+rm tmpfile
 echo "$bans IPs have been banned."
