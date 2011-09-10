@@ -34,7 +34,7 @@ if  [ $# -ne 3 ]; then                       # Echo usage if run empty
     exit
 fi
 fi
-fi
+
 
 mkdir ./$1.git                              # Make the new directory
 cd ./$1.git
