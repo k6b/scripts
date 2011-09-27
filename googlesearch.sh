@@ -1,5 +1,5 @@
 #! /bin/sh
-term="test+search"
+term="test"
 sleep_sec=7200
 count=0
 while :; do
