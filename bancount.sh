@@ -37,6 +37,12 @@ then
     echo -e "\033[4mIP\t\tDate\t\tTime\033[0m"
         for i in $ips
         do
+            if [[ $i =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]
+            then
+                i=$i
+            else
+                i=$(echo $i | awk -F . '{print $1}' | sed s/-/./g)
+            fi
             date=$(awk "/Ban\ $i/"'{ print $1 }' /var/log/fail2ban.log)
             time=$(awk "/Ban\ $i/"'{ print $2 }' /var/log/fail2ban.log | cut -d , -f 1)
             echo -e $i'\t'$date'\t'$time
