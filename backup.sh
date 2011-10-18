@@ -8,3 +8,8 @@ do
     tar zcf /backup/backup.$(date +%m.%d.%y).$i.tar.gz $(grep $i /etc/passwd | awk -F : '{print $6}')
     chown $i:$i /backup/backup.$(date +%m.%d.%y).$i.tar.gz  
 done
+sites=$(ls /srv | sed 's/gitosis//g')
+for j in $sites
+do
+    tar zcf /backup/backup.$(date +%m.%d.%y).$j.tar.gz /srv/$j
+done
