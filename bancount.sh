@@ -40,10 +40,8 @@ then
             if [[ $i =~ [0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3} ]]
             then
                 i=$(echo $i | grep -oP "\d{1,3}[-.]\d{1,3}[-.]\d{1,3}[-.]\d{1,3}" | sed 's/-/./g')
-#                echo $i
             else
                 i=$(dig A $i | grep $i | grep -oP "\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}")
-#                echo $i
             fi
             date=$(awk "/Ban\ $i/"'{ print $1 }' /var/log/fail2ban.log)
             time=$(awk "/Ban\ $i/"'{ print $2 }' /var/log/fail2ban.log | cut -d , -f 1)
