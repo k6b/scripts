@@ -37,7 +37,14 @@ then
     echo -e "\033[4mIP\t\tDate\t\tTime\033[0m"
         for i in $ips
         do
-            i=$(echo $i | sed 's/-/./g' | cut -d . -f 1,2,3,4)
+            if [[ $i =~ [0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3} ]]
+            then
+                i=$(echo $i | grep -oP "\d{1,3}[-.]\d{1,3}[-.]\d{1,3}[-.]\d{1,3}" | sed 's/-/./g')
+#                echo $i
+            else
+                i=$(dig A $i | grep $i | grep -oP "\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}")
+#                echo $i
+            fi
             date=$(awk "/Ban\ $i/"'{ print $1 }' /var/log/fail2ban.log)
             time=$(awk "/Ban\ $i/"'{ print $2 }' /var/log/fail2ban.log | cut -d , -f 1)
             echo -e $i'\t'$date'\t'$time
