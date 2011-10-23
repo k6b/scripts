@@ -1,5 +1,6 @@
 #! /bin/sh
 # short script to find the number of IPs banned by fail2ban
+# by k6b kyle@kyleberry.org
 
 if [[ $EUID -ne 0 ]]; then
     echo Must be run as root!
