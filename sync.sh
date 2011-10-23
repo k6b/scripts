@@ -1,6 +1,6 @@
 #! /bin/sh
 
-remote_server="kylefberry.net"
+remote_server="173.214.171.243"
 remote_user="kyleb"
 local_dir="/srv/http/"
 remote_dir="/home/kyleb/public_html"
@@ -9,4 +9,4 @@ log_file="/home/k6b/rsync_log"
 date=`date +"%m-%d-%y %T"`
 
 echo [$date] >> $log_file
-rsync -ave "ssh -i $key_file" $local_dir $remote_user@$remote_server:$remote_dir >> $log_file
+rsync -ave --delete "ssh -i $key_file" $local_dir $remote_user@$remote_server:$remote_dir >> $log_file
