@@ -9,4 +9,4 @@ log_file="/home/k6b/rsync_log"
 date=`date +"%m-%d-%y %T"`
 
 echo [$date] >> $log_file
-rsync -ave --delete "ssh -i $key_file" $local_dir $remote_user@$remote_server:$remote_dir >> $log_file
+rsync --delete -ave "ssh -i $key_file" $local_dir $remote_user@$remote_server:$remote_dir >> $log_file
