@@ -49,21 +49,15 @@ fi
 
 if [[ $total -ne "0" ]]
 then
-    ips=$(iptables -L | awk "/DROP\ /"'{ print $4}' | awk '{ print $1 }')
+    ips=$(egrep "\ Ban\ " /var/log/fail2ban.log | tail -n $total | awk '{print $7}')
     echo -e "\033[4mCurrently Banned\033[0m"'\n'
     echo -e "\033[4mIP\t\tDate\t\tTime\t\tCountry\033[0m"
         for i in $ips
         do
-            if [[ $i =~ [0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3} ]]
-            then
-                i=$(echo $i | grep -oP "\d{1,3}[-.]\d{1,3}[-.]\d{1,3}[-.]\d{1,3}" | sed 's/-/./g')
-            else
-                i=$(dig A $i | grep $i | grep -oP "\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}")
-            fi
             date=$(awk "/Ban\ $i/"'{ print $1 }' /var/log/fail2ban.log)
             time=$(awk "/Ban\ $i/"'{ print $2 }' /var/log/fail2ban.log | cut -d , -f 1)
             country=$(geoiplookup $i | awk '{print $5}')
-            echo -e $i'\t'$date'\t'$time'\t'$country
+            echo -e $i'\t'$date'\t'$time'\t'$(geoiplookup $i | awk -F , '{print $2}' | sed s/\ //)
         done
     echo
 fi
