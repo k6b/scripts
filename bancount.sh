@@ -54,11 +54,9 @@ then
     echo -e "\033[4mIP\t\tDate\t\tTime\t\tCountry\033[0m"
         for i in $ips
         do
-            answer=$(egrep "\ Ban\ " /var/log/fail2ban.log | tail -n $total | awk '{print $7"\t"$1"\t"$2}' | cut -d , -f 1 | grep "$i")
-#            date=$(awk "/Ban\ $i/"'{ print $1 }' /var/log/fail2ban.log)
-#            time=$(awk "/Ban\ $i/"'{ print $2 }' /var/log/fail2ban.log | cut -d , -f 1)
-            country=$(geoiplookup $i | awk '{print $5}')
-            echo -e $answer'\t'$(geoiplookup $i | awk -F , '{print $2}' | sed s/\ //)
+            date=$(awk "/Ban\ $i/"'{ print $1 }' /var/log/fail2ban.log | tail -n $total)
+            time=$(awk "/Ban\ $i/"'{ print $2 }' /var/log/fail2ban.log | cut -d , -f 1 | tail -n $total)
+            echo -e $i'\t'$date'\t'$time'\t'$(geoiplookup $i | awk -F , '{print $2}' | sed s/\ //)
         done
     echo
 fi
