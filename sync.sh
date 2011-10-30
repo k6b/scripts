@@ -1,6 +1,6 @@
 #! /bin/sh
 
-remote_server="173.214.171.243"
+remote_server="kylefberry.net"
 remote_user="kyleb"
 local_dir="/srv/http/"
 remote_dir="/home/kyleb/public_html"
