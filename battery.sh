@@ -6,8 +6,6 @@ percent=$(echo $battery | awk '{print $1}')
 state=$(echo $battery | awk '{print $2}')
 time=$(echo $battery | awk '{print $3}')
 
-echo $percent $state $time
-
 if [[ $percent > "75%" ]]
 then
     echo -e "Batt: \e[32m$percent\e[0m $state $time"
