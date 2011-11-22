@@ -42,7 +42,7 @@ recent () {
 # Find the number of IPs banned
 # Added sanity check for systems with no IPs banned
 
-bans=$(awk '/\ Ban / { nmatches++ } { if ( nmatches < 0 ) nmatches=0 } END { print nmatches }' /var/log/fail2ban.log)
+bans=$(awk '/\ Ban / { nmatches++ } { if ( nmatches==0 ) nmatches=0 } END { print nmatches }' /var/log/fail2ban.log)
 
 # This is the regex we use to find IPs with ipfind () here
 # we make a list of the IPs banned more than once we're only
@@ -56,7 +56,7 @@ iplist=$(ipfind [0-9]++.[0-9]++.[0-9]++.[0-9]++ | awk '{ print $1 }')
 # find this number.
 # Added sanity check for systems with no IPs banned.
 
-total=$(($bans - $(awk '/\ Unban / { nmatches++ } { if ( nmatches < 0 ) nmatches=0 } END { print nmatches }' /var/log/fail2ban.log)))
+total=$(($bans - $(awk '/\ Unban / { nmatches++ } { if ( nmatches == 0 ) nmatches=0 } END { print nmatches }' /var/log/fail2ban.log)))
 
 #####
 # Begin the script
@@ -72,8 +72,21 @@ fi
 # Print some text
 
 echo -e '\n'"\033[4m\033[1mFail2Ban\033[0m"'\n'
-echo -e $bans IPs have been banned.
-echo -e '\n'"\033[4mIP\t\tBans\tCountry\033[0m"
+
+# Use proper grammer :)
+
+if [[ $bans -eq 0 ]]
+then
+    echo -e No IPs have been banned.
+elif [[ $bans -ne 1 ]]
+then
+    echo -e $bans IPs have been banned.
+    echo -e '\n'"\033[4mIP\t\tBans\tCountry\033[0m"
+else
+    echo -e $bans IP has been banned.
+    echo -e '\n'"\033[4mIP\t\tBans\tCountry\033[0m"
+fi
+
 
 # Use the list of IPs we found to generate a list of IP's that
 # have been banned more than once, along with the number of times
@@ -118,7 +131,8 @@ then
             # Find the date and time
 
             date=$(recent | awk "/$i/"'{print $1}')
-            time=$(recent | awk "/$i/"'{print $2}'| cut -d , -f 1)
+            time=$(recent | awk "/$i/"'{print $2}' | cut -d , -f 1)
+#            service=$(recent | awk "/$i/"'{print $5}' | sed 's/-iptables//')
 
             # Print out the list of currently banned IPs
 
