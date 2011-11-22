@@ -81,7 +81,6 @@ then
 elif [[ $bans -ne 1 ]]
 then
     echo -e $bans IPs have been banned.
-    echo -e '\n'"\033[4mIP\t\tBans\tCountry\033[0m"
 else
     echo -e $bans IP has been banned.
 fi
@@ -90,7 +89,7 @@ fi
 # have been banned more than once, along with the number of times
 # it's been banned and it's country of origin.
 
-if [[ $iplist < 0 ]]
+if [[ $iplist > 0 ]]
 then
     echo -e '\n'"\033[4mIP\t\tBans\tCountry\033[0m"
     for i in $iplist
@@ -124,7 +123,7 @@ then
     # Print some more text
 
     echo -e "\033[4mCurrently Banned\033[0m"'\n'
-    echo -e "\033[4mIP\t\tDate\t\tTime\t\tCountry\t\tService\033[0m"
+    echo -e "\033[4mIP\t\tDate\t\tTime\t\tCountry\033[0m"
 
         # Use the list of IPs to find more information about the
         # currently banned IPs
@@ -136,11 +135,11 @@ then
 
             date=$(recent | awk "/$i/"'{print $1}')
             time=$(recent | awk "/$i/"'{print $2}' | cut -d , -f 1)
-            service=$(recent | awk "/$i/"'{print $5}' | sed 's/-iptables//')
-
+            #service=$(recent | awk "/$i/"'{print $5}' | sed 's/-iptables//')
+            
             # Print out the list of currently banned IPs
 
-            echo -e $i'\t'$date'\t'$time'\t'$(geoip $i)'\t'$service
+            echo -e $i'\t'$date'\t'$time'\t'$(geoip $i)
         done
     echo
 fi
