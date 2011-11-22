@@ -40,8 +40,9 @@ recent () {
 #####
 
 # Find the number of IPs banned
+# Added sanity check for systems with no IPs banned
 
-bans=$(awk '/\ Ban / { nmatches++ } END { print nmatches }' /var/log/fail2ban.log)
+bans=$(awk '/\ Ban / { nmatches++ } { if ( nmatches < 0 ) nmatches=0 } END { print nmatches }' /var/log/fail2ban.log)
 
 # This is the regex we use to find IPs with ipfind () here
 # we make a list of the IPs banned more than once we're only
@@ -53,8 +54,9 @@ iplist=$(ipfind [0-9]++.[0-9]++.[0-9]++.[0-9]++ | awk '{ print $1 }')
 # number we found earlier and subtracting it from the number of
 # Unbans reported by fail2ban. I'm sure there's a better way to
 # find this number.
+# Added sanity check for systems with no IPs banned.
 
-total=$(($bans - $(awk '/\ Unban / { nmatches++ } END { print nmatches }' /var/log/fail2ban.log)))
+total=$(($bans - $(awk '/\ Unban / { nmatches++ } { if ( nmatches < 0 ) nmatches=0 } END { print nmatches }' /var/log/fail2ban.log)))
 
 #####
 # Begin the script
