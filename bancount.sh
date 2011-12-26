@@ -4,13 +4,13 @@
 
 # Location of fail2ban log
 
-fail2banlog="/var/log/fail2ban.log"
+fail2banlog="/var/log/messages*"
 
 # Check to make sure we are running as root
 
 if [[ $EUID -ne 0 ]]; then
-    echo Must be run as root!
-    exit 0
+	echo Must be run as root!
+	exit 0
 fi
 
 #####
@@ -25,24 +25,24 @@ fi
 # more information.
 
 ipfind () {
-    awk "/Ban\ $1/"'{ a[$7]++ }
-        { for ( i in a ) { if ( a[i]-1 ) print i, a[i] }}' $fail2banlog |
-    awk '{ a[$1] < $NF? a[$1] = $NF : "" } END { for ( i in a ) { print i, "\t" a[i] }}' |
-    awk '{print $1,$2}'
+	awk "/Ban\ $1/"'{ a[$9]++ }
+		{ for ( i in a ) { if ( a[i]-1 ) print i, a[i] }}' $fail2banlog |
+	awk '{ a[$1] < $NF? a[$1] = $NF : "" } END { for ( i in a ) { print i, "\t" a[i] }}' |
+	awk '{print $1,$2}'
 }
 
 # Use geoiplookup and some awk/sed magic to return just
 # the country of origin of the IP in question.
 
 geoip () {
-    geoiplookup $1 | awk -F , '{print $2}' | sed s/\ //
+	geoiplookup $1 | awk -F , '{print $2}' | sed s/\ //
 }
 
 # We also need to create a list of the IPs that are currently
 # banned. We'll process this information later.
 
 recent () {
-    egrep "\ Ban\ " $fail2banlog | tail -n $total
+	egrep "\ Ban\ " $fail2banlog | sort | tail -n $total
 }
 
 #####
@@ -74,18 +74,18 @@ total=$(($bans - $(awk '/\ Unban / { nmatches++ } { if ( nmatches == 0 ) nmatche
 
 # Print some text
 
-echo -e '\n'"\033[4m\033[1mFail2Ban\033[0m"'\n'
+echo -e '\n'"\033[4m\033[1mFail2BanCount - by k6b\033[0m"'\n'
 
 # Use proper grammer :)
 
 if [[ $bans -eq 0 ]]
 then
-    echo -e No IPs have been banned.
+	echo -e No IPs have been banned.
 elif [[ $bans -ne 1 ]]
 then
-    echo -e $bans IPs have been banned.
+	echo -e $bans IPs have been banned.
 else
-    echo -e $bans IP has been banned.
+	echo -e $bans IP has been banned.
 fi
 
 # Use the list of IPs we found to generate a list of IP's that
@@ -94,13 +94,13 @@ fi
 
 if [[ $iplist > 0 ]]
 then
-    echo -e '\n'"\033[4mIP\t\tBans\tCountry\033[0m"
-    for i in $iplist
-    do
-        echo -e $(ipfind $i | awk '{ print $1 }')'\t'$(ipfind $i | awk '{ print $2 }')'\t'$(geoip $i)
-    done
+	echo -e '\n'"\033[4mIP\t\tBans\tCountry\033[0m"
+		for i in $iplist
+		do
+		echo -e $(ipfind $i | awk '{ print $1 }')'\t'$(ipfind $i | awk '{ print $2 }')'\t'$(geoip $i)
+	done
 else
-    continue
+	continue
 fi
 
 # We want to print the number of IPs that are currently banned,
@@ -108,9 +108,9 @@ fi
 
 if [[ $total -ne "1" ]]
 then
-    echo -e '\n'Currently $total IPs are banned.'\n'
+	echo -e '\n'Currently $total IPs are banned.'\n'
 else
-    echo -e '\n'Currently $total IP is banned.'\n'
+	echo -e '\n'Currently $total IP is banned.'\n'
 fi
 
 # If we have an IP currently banned, let's make another list showing
@@ -119,30 +119,30 @@ fi
 if [[ $total -ne "0" ]]
 then
 
-    # Generate a list of the currently banned IPs
+	# Generate a list of the currently banned IPs
 
-    ips=$(recent | awk '{print $7}')
+	ips=$(recent | awk '{print $9}')
 
-    # Print some more text
+	# Print some more text
 
-    echo -e "\033[4mCurrently Banned\033[0m"'\n'
-    echo -e "\033[4mIP\t\tDate\t\tTime\t\tCountry\033[0m"
+	echo -e "\033[4mCurrently Banned\033[0m"'\n'
+	echo -e "\033[4mIP\t\tDate\t\tTime\t\tCountry\033[0m"
 
-        # Use the list of IPs to find more information about the
-        # currently banned IPs
+		# Use the list of IPs to find more information about the
+		# currently banned IPs
 
-        for i in $ips
-        do
+		for i in $ips
+		do
 
-            # Find the date and time
+			# Find the date and time
 
-            date=$(recent | awk "/$i/"'{print $1}')
-            time=$(recent | awk "/$i/"'{print $2}' | cut -d , -f 1)
-            #service=$(recent | awk "/$i/"'{print $5}' | sed 's/\[//;s/\]//')
-            
-            # Print out the list of currently banned IPs
+			date=$(recent | awk "/$i/"'{print $1,$2}' | cut -d : -f 2)
+			time=$(recent | awk "/$i/"'{print $3}' | cut -d , -f 1)
+			#service=$(recent | awk "/$i/"'{print $5}' | sed 's/\[//;s/\]//')
+			
+			# Print out the list of currently banned IPs
 
-            echo -e $i'\t'$date'\t'$time'\t'$(geoip $i) #'\t'$service
-        done
-    echo
+			echo -e $i'\t'$date'\t\t'$time'\t'$(geoip $i) #'\t'$service
+		done
+	echo
 fi
