@@ -4,7 +4,7 @@
 
 # Location of fail2ban log
 
-fail2banlog="/var/log/messages*"
+fail2banlog="/var/log/fail2ban.log"
 
 # Check to make sure we are running as root
 
@@ -25,7 +25,7 @@ fi
 # more information.
 
 ipfind () {
-	awk "/Ban\ $1/"'{ a[$9]++ }
+	awk "/Ban\ $1/"'{ a[$7]++ }
 		{ for ( i in a ) { if ( a[i]-1 ) print i, a[i] }}' $fail2banlog |
 	awk '{ a[$1] < $NF? a[$1] = $NF : "" } END { for ( i in a ) { print i, "\t" a[i] }}' |
 	awk '{print $1,$2}'
@@ -121,7 +121,7 @@ then
 
 	# Generate a list of the currently banned IPs
 
-	ips=$(recent | awk '{print $9}')
+	ips=$(recent | awk '{print $7}')
 
 	# Print some more text
 
@@ -136,8 +136,8 @@ then
 
 			# Find the date and time
 
-			date=$(recent | awk "/$i/"'{print $1,$2}' | cut -d : -f 2)
-			time=$(recent | awk "/$i/"'{print $3}' | cut -d , -f 1)
+			date=$(recent | awk "/$i/"'{print $1}' | cut -d : -f 2)
+			time=$(recent | awk "/$i/"'{print $2}' | cut -d , -f 1)
 			#service=$(recent | awk "/$i/"'{print $5}' | sed 's/\[//;s/\]//')
 			
 			# Print out the list of currently banned IPs
