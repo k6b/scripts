@@ -72,77 +72,166 @@ total=$(($bans - $(awk '/\ Unban / { nmatches++ } { if ( nmatches == 0 ) nmatche
 # Begin the script
 #####
 
-# Print some text
+# Two different versions, HTML output and regular
+# BASH formatted output, BASH output is default
 
-echo -e '\n'"\033[4m\033[1mFail2BanCount - by k6b\033[0m"'\n'
+case $1 in
 
-# Use proper grammer :)
+-h)
 
-if [[ $bans -eq 0 ]]
-then
-	echo -e No IPs have been banned.
-elif [[ $bans -ne 1 ]]
-then
-	echo -e $bans IPs have been banned.
-else
-	echo -e $bans IP has been banned.
-fi
+	# Print some text
 
-# Use the list of IPs we found to generate a list of IP's that
-# have been banned more than once, along with the number of times
-# it's been banned and it's country of origin.
+	echo -e "<html><head><title>Fail2BanCount - by k6b</title></head><body><center><b><i><u>Fail2BanCount - by k6b</u></i></b><br />"
 
-if [[ $iplist > 0 ]]
-then
-	echo -e '\n'"\033[4mIP\t\tBans\tCountry\033[0m"
-		for i in $iplist
-		do
-		echo -e $(ipfind $i | awk '{ print $1 }')'\t'$(ipfind $i | awk '{ print $2 }')'\t'$(geoip $i)
-	done
-else
-	continue
-fi
+	# Use proper grammer :)
 
-# We want to print the number of IPs that are currently banned,
-# but we should use proper grammar. (Because why not?)
+	if [[ $bans -eq 0 ]]
+	then
+		echo -e "<br />No IPs have been banned.<br />"
+	elif [[ $bans -ne 1 ]]
+	then
+		echo -e "<br />$bans IPs have been banned.<br /><br />"
+	else
+		echo -e "<br />$bans IP has been banned.<br /><br />"
+	fi
 
-if [[ $total -ne "1" ]]
-then
-	echo -e '\n'Currently $total IPs are banned.'\n'
-else
-	echo -e '\n'Currently $total IP is banned.'\n'
-fi
+	# Use the list of IPs we found to generate a list of IP's that
+	# have been banned more than once, along with the number of times
+	# it's been banned and it's country of origin.
 
-# If we have an IP currently banned, let's make another list showing
-# the IP, the date and time of it's ban, and it's country of origin.
-
-if [[ $total -ne "0" ]]
-then
-
-	# Generate a list of the currently banned IPs
-
-	ips=$(recent | awk '{print $7}')
-
-	# Print some more text
-
-	echo -e "\033[4mCurrently Banned\033[0m"'\n'
-	echo -e "\033[4mIP\t\tDate\t\tTime\t\tCountry\033[0m"
-
-		# Use the list of IPs to find more information about the
-		# currently banned IPs
-
-		for i in $ips
-		do
-
-			# Find the date and time
-
-			date=$(recent | awk "/$i/"'{print $1}' | cut -d : -f 2)
-			time=$(recent | awk "/$i/"'{print $2}' | cut -d , -f 1)
-			#service=$(recent | awk "/$i/"'{print $5}' | sed 's/\[//;s/\]//')
-			
-			# Print out the list of currently banned IPs
-
-			echo -e $i'\t'$date'\t\t'$time'\t'$(geoip $i) #'\t'$service
+	if [[ $iplist > 0 ]]
+	then
+		echo -e "<table border="1"><tr><th>IP</th><th>Bans</th><th>Country</th></tr>"
+			for i in $iplist
+			do
+			echo -e "<tr><td>$(ipfind $i | awk '{ print $1 }')</td><td>$(ipfind $i | awk '{ print $2 }')</td><td>$(geoip $i)</td></tr>"
 		done
-	echo
-fi
+		echo -e "</table>"
+	else
+		continue
+	fi
+
+	# We want to print the number of IPs that are currently banned,
+	# but we should use proper grammar. (Because why not?)
+
+	if [[ $total -ne "1" ]]
+	then
+		echo -e "<br />Currently $total IPs are banned.<br />"
+	else
+		echo -e "<br />Currently $total IP is banned.<br />"
+	fi
+
+	# If we have an IP currently banned, let's make another list showing
+	# the IP, the date and time of it's ban, and it's country of origin.
+
+	if [[ $total -ne "0" ]]
+	then
+
+		# Generate a list of the currently banned IPs
+
+		ips=$(recent | awk '{print $7}')
+
+		# Print some more text
+
+		echo -e "<br /><u>Currently Banned</u><br />"
+		echo -e "<br /><table border="1"><tr><th>IP</th><th>Date</th><th>Time</th><th>Country</th></tr>"
+
+			# Use the list of IPs to find more information about the
+			# currently banned IPs
+
+			for i in $ips
+			do
+
+				# Find the date and time
+
+				date=$(recent | awk "/$i/"'{print $1}' | cut -d : -f 2)
+				time=$(recent | awk "/$i/"'{print $2}' | cut -d , -f 1)
+				#service=$(recent | awk "/$i/"'{print $5}' | sed 's/\[//;s/\]//')
+			
+				# Print out the list of currently banned IPs
+
+				echo -e "<tr><td>$i</td><td>$date</td><td>$time</td><td>$(geoip $i)</td></tr>"
+			done
+		echo "</table><br />Updated: `date`"
+		echo "</center></body></html>"
+	fi
+;;
+
+*)
+
+	# Print some text
+
+	echo -e '\n'"\033[4m\033[1mFail2BanCount - by k6b\033[0m"'\n'
+
+	# Use proper grammer :)
+
+	if [[ $bans -eq 0 ]]
+	then
+		echo -e No IPs have been banned.
+	elif [[ $bans -ne 1 ]]
+	then
+		echo -e $bans IPs have been banned.
+	else
+		echo -e $bans IP has been banned.
+	fi
+
+	# Use the list of IPs we found to generate a list of IP's that
+	# have been banned more than once, along with the number of times
+	# it's been banned and it's country of origin.
+
+	if [[ $iplist > 0 ]]
+	then
+		echo -e '\n'"\033[4mIP\t\tBans\tCountry\033[0m"
+			for i in $iplist
+			do
+			echo -e $(ipfind $i | awk '{ print $1 }')'\t'$(ipfind $i | awk '{ print $2 }')'\t'$(geoip $i)
+		done
+	else
+		continue
+	fi
+
+	# We want to print the number of IPs that are currently banned,
+	# but we should use proper grammar. (Because why not?)
+
+	if [[ $total -ne "1" ]]
+	then
+		echo -e '\n'Currently $total IPs are banned.'\n'
+	else
+		echo -e '\n'Currently $total IP is banned.'\n'
+	fi
+
+	# If we have an IP currently banned, let's make another list showing
+	# the IP, the date and time of it's ban, and it's country of origin.
+
+	if [[ $total -ne "0" ]]
+	then
+
+		# Generate a list of the currently banned IPs
+
+		ips=$(recent | awk '{print $7}')
+
+		# Print some more text
+
+		echo -e "\033[4mCurrently Banned\033[0m"'\n'
+		echo -e "\033[4mIP\t\tDate\t\tTime\t\tCountry\033[0m"
+
+			# Use the list of IPs to find more information about the
+			# currently banned IPs
+
+			for i in $ips
+			do
+
+				# Find the date and time
+
+				date=$(recent | awk "/$i/"'{print $1}' | cut -d : -f 2)
+				time=$(recent | awk "/$i/"'{print $2}' | cut -d , -f 1)
+				#service=$(recent | awk "/$i/"'{print $5}' | sed 's/\[//;s/\]//')
+			
+				# Print out the list of currently banned IPs
+
+				echo -e $i'\t'$date'\t'$time'\t'$(geoip $i) #'\t'$service
+			done
+		echo
+	fi
+;;
+esac
