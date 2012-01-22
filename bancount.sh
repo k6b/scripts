@@ -13,36 +13,22 @@ if [[ $EUID -ne 0 ]]; then
 	exit 0
 fi
 
+mysqldb=""
+mysqlpw=""
+mysqluser=""
+
 #####
 # First, we'll define a few functions so we don't have to
 # do the same thing over and over again.
 #####
 
-# We need to look through fail2ban.log and find IPs that
-# have been banned more than once, we can do this by
-# using a regex through this function instead of an IP.
-# Then we feed the function the IP's we found to gather
-# more information.
-
 ipfind () {
-	awk "/Ban\ $1/"'{ a[$7]++ }
-		{ for ( i in a ) { if ( a[i]-1 ) print i, a[i] }}' $fail2banlog |
-	awk '{ a[$1] < $NF? a[$1] = $NF : "" } END { for ( i in a ) { print i, "\t" a[i] }}' |
-	awk '{print $1,$2}'
+	mysql $mysqldb -u $mysqluser --password=$mysqlpw -e "SELECT ip,COUNT(*) count,country FROM bans GROUP BY ip HAVING count >1;" | sed '/ip/d'
 }
-
-# Use geoiplookup and some awk/sed magic to return just
-# the country of origin of the IP in question.
-
-geoip () {
-	geoiplookup $1 | awk -F , '{print $2}' | sed s/\ //
-}
-
-# We also need to create a list of the IPs that are currently
-# banned. We'll process this information later.
 
 recent () {
-	egrep "\ Ban\ " $fail2banlog | sort | tail -n $total
+#	mysql $mysqldb -u $mysqluser --password=$mysqlpw -e "SELECT ip,ban_date,ban_time,country FROM bans WHERE id > ((SELECT MAX(id) FROM bans) - $total)" | sed '/ip/d'
+	mysql $mysqldb -u $mysqluser --password=$mysqlpw -e "SELECT ip,ban_date,ban_time,country FROM bans WHERE bans.id NOT IN ( SELECT unbans.id FROM unbans WHERE bans.id=unbans.id)" | sed '/ip/d'
 }
 
 #####
@@ -52,13 +38,8 @@ recent () {
 # Find the number of IPs banned
 # Added sanity check for systems with no IPs banned
 
-bans=$(awk '/\ Ban / { nmatches++ } { if ( nmatches==0 ) nmatches=0 } END { print nmatches }' $fail2banlog)
-
-# This is the regex we use to find IPs with ipfind () here
-# we make a list of the IPs banned more than once we're only
-# interested in the first colum here.
-
-iplist=$(ipfind [0-9]++.[0-9]++.[0-9]++.[0-9]++ | awk '{ print $1 }')
+bans=$(mysql $mysqldb -u $mysqluser --password=$mysqlpw -e "SELECT MAX(id) from bans" | egrep "[0-9]")
+unbans=$(mysql $mysqldb -u $mysqluser --password=$mysqlpw -e "SELECT MAX(id) FROM unbans" | egrep "[0-9]")
 
 # Here we find the number of IPs currently banned by using the
 # number we found earlier and subtracting it from the number of
@@ -66,172 +47,57 @@ iplist=$(ipfind [0-9]++.[0-9]++.[0-9]++.[0-9]++ | awk '{ print $1 }')
 # find this number.
 # Added sanity check for systems with no IPs banned.
 
-total=$(($bans - $(awk '/\ Unban / { nmatches++ } { if ( nmatches == 0 ) nmatches=0 } END { print nmatches }' $fail2banlog)))
+total=$(($bans - $unbans))
 
 #####
 # Begin the script
 #####
 
-# Two different versions, HTML output and regular
-# BASH formatted output, BASH output is default
+# Print some text
 
-case $1 in
+echo -e '\n'"\033[4m\033[1mFail2BanCount - by k6b\033[0m"'\n'
 
--h)
+# Use proper grammer :)
 
-	# Print some text
+if [[ $bans -eq 0 ]]
+then
+	echo -e No IPs have been banned.
+elif [[ $bans -ne 1 ]]
+then
+	echo -e $bans IPs have been banned.
+else
+	echo -e $bans IP has been banned.
+fi
 
-	echo -e "<html><head><title>Fail2BanCount - by k6b</title></head><body><center><b><i><u>Fail2BanCount - by k6b</u></i></b><br />"
+# Use the list of IPs we found to generate a list of IP's that
+# have been banned more than once, along with the number of times
+# it's been banned and it's country of origin.
 
-	# Use proper grammer :)
+echo -e '\n'"\033[4mIP\t\tBans\tCountry\033[0m"
+ipfind
 
-	if [[ $bans -eq 0 ]]
-	then
-		echo -e "<br />No IPs have been banned.<br />"
-	elif [[ $bans -ne 1 ]]
-	then
-		echo -e "<br />$bans IPs have been banned.<br /><br />"
-	else
-		echo -e "<br />$bans IP has been banned.<br /><br />"
-	fi
+# We want to print the number of IPs that are currently banned,
+# but we should use proper grammar. (Because why not?)
 
-	# Use the list of IPs we found to generate a list of IP's that
-	# have been banned more than once, along with the number of times
-	# it's been banned and it's country of origin.
+if [[ $total -ne "1" ]]
+then
+	echo -e '\n'Currently $total IPs are banned.'\n'
+else
+	echo -e '\n'Currently $total IP is banned.'\n'
+fi
 
-	if [[ $iplist > 0 ]]
-	then
-		echo -e "<table border="1"><tr><th>IP</th><th>Bans</th><th>Country</th></tr>"
-			for i in $iplist
-			do
-			echo -e "<tr><td>$(ipfind $i | awk '{ print $1 }')</td><td>$(ipfind $i | awk '{ print $2 }')</td><td>$(geoip $i)</td></tr>"
-		done
-		echo -e "</table>"
-	else
-		continue
-	fi
+# If we have an IP currently banned, let's make another list showing
+# the IP, the date and time of it's ban, and it's country of origin.
 
-	# We want to print the number of IPs that are currently banned,
-	# but we should use proper grammar. (Because why not?)
+if [[ $total -ne "0" ]]
+then
 
-	if [[ $total -ne "1" ]]
-	then
-		echo -e "<br />Currently $total IPs are banned.<br />"
-	else
-		echo -e "<br />Currently $total IP is banned.<br />"
-	fi
+	# Print some more text
 
-	# If we have an IP currently banned, let's make another list showing
-	# the IP, the date and time of it's ban, and it's country of origin.
+	echo -e "\033[4mCurrently Banned\033[0m"'\n'
+	echo -e "\033[4mIP\t\tDate\t\tTime\t\tCountry\033[0m"
+	
+	recent
 
-	if [[ $total -ne "0" ]]
-	then
-
-		# Generate a list of the currently banned IPs
-
-		ips=$(recent | awk '{print $7}')
-
-		# Print some more text
-
-		echo -e "<br /><u>Currently Banned</u><br />"
-		echo -e "<br /><table border="1"><tr><th>IP</th><th>Date</th><th>Time</th><th>Country</th></tr>"
-
-			# Use the list of IPs to find more information about the
-			# currently banned IPs
-
-			for i in $ips
-			do
-
-				# Find the date and time
-
-				date=$(recent | awk "/$i/"'{print $1}' | cut -d : -f 2)
-				time=$(recent | awk "/$i/"'{print $2}' | cut -d , -f 1)
-				#service=$(recent | awk "/$i/"'{print $5}' | sed 's/\[//;s/\]//')
-			
-				# Print out the list of currently banned IPs
-
-				echo -e "<tr><td>$i</td><td>$date</td><td>$time</td><td>$(geoip $i)</td></tr>"
-			done
-		echo "</table><br />Updated: `date`"
-		echo "</center></body></html>"
-	fi
-;;
-
-*)
-
-	# Print some text
-
-	echo -e '\n'"\033[4m\033[1mFail2BanCount - by k6b\033[0m"'\n'
-
-	# Use proper grammer :)
-
-	if [[ $bans -eq 0 ]]
-	then
-		echo -e No IPs have been banned.
-	elif [[ $bans -ne 1 ]]
-	then
-		echo -e $bans IPs have been banned.
-	else
-		echo -e $bans IP has been banned.
-	fi
-
-	# Use the list of IPs we found to generate a list of IP's that
-	# have been banned more than once, along with the number of times
-	# it's been banned and it's country of origin.
-
-	if [[ $iplist > 0 ]]
-	then
-		echo -e '\n'"\033[4mIP\t\tBans\tCountry\033[0m"
-			for i in $iplist
-			do
-			echo -e $(ipfind $i | awk '{ print $1 }')'\t'$(ipfind $i | awk '{ print $2 }')'\t'$(geoip $i)
-		done
-	else
-		continue
-	fi
-
-	# We want to print the number of IPs that are currently banned,
-	# but we should use proper grammar. (Because why not?)
-
-	if [[ $total -ne "1" ]]
-	then
-		echo -e '\n'Currently $total IPs are banned.'\n'
-	else
-		echo -e '\n'Currently $total IP is banned.'\n'
-	fi
-
-	# If we have an IP currently banned, let's make another list showing
-	# the IP, the date and time of it's ban, and it's country of origin.
-
-	if [[ $total -ne "0" ]]
-	then
-
-		# Generate a list of the currently banned IPs
-
-		ips=$(recent | awk '{print $7}')
-
-		# Print some more text
-
-		echo -e "\033[4mCurrently Banned\033[0m"'\n'
-		echo -e "\033[4mIP\t\tDate\t\tTime\t\tCountry\033[0m"
-
-			# Use the list of IPs to find more information about the
-			# currently banned IPs
-
-			for i in $ips
-			do
-
-				# Find the date and time
-
-				date=$(recent | awk "/$i/"'{print $1}' | cut -d : -f 2)
-				time=$(recent | awk "/$i/"'{print $2}' | cut -d , -f 1)
-				#service=$(recent | awk "/$i/"'{print $5}' | sed 's/\[//;s/\]//')
-			
-				# Print out the list of currently banned IPs
-
-				echo -e $i'\t'$date'\t'$time'\t'$(geoip $i) #'\t'$service
-			done
-		echo
-	fi
-;;
-esac
+echo
+fi
