@@ -8,10 +8,10 @@
 
 // Database connection info
 
-$db_host = 'localhost';
-$db_user = 'fail2bancount';
-$db_pwd = 'OJ9tzckQyVqCLzut';
-$database = 'fail2bancount';
+$db_host = '';
+$db_user = '';
+$db_pwd = '';
+$database = '';
 
 // Connect to MySQL
 
