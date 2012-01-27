@@ -2,16 +2,7 @@
 # script to find the number of IPs banned by fail2ban
 # by k6b kyle@kyleberry.org
 
-# Location of fail2ban log
-
-fail2banlog="/var/log/fail2ban.log"
-
-# Check to make sure we are running as root
-
-if [[ $EUID -ne 0 ]]; then
-	echo Must be run as root!
-	exit 0
-fi
+# MySQL User/Database information
 
 mysqldb=""
 mysqlpw=""
@@ -23,7 +14,7 @@ mysqluser=""
 #####
 
 ipfind () {
-	mysql $mysqldb -u $mysqluser --password=$mysqlpw -e "SELECT ip,COUNT(*) count,country FROM bans GROUP BY ip HAVING count >1;" | sed '/ip/d'
+	mysql $mysqldb -u $mysqluser --password=$mysqlpw -e "SELECT ip,COUNT(*) count,country FROM bans GROUP BY ip HAVING count > 1;" | sed '/ip/d'
 }
 
 recent () {
