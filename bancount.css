@@ -42,6 +42,14 @@ body {
 	width: 100%
 	}
 
+.menu {
+	width:200px;
+	padding:1em;
+	display: table-cell;
+	text-align: center;
+	font-weight: bold;
+	}
+
 .cell {
 	width:150px;
 	padding:1em;
@@ -49,6 +57,24 @@ body {
 	text-align: center;
 	}
 
-h1 h2 h3 {
-	padding: 10px;
+.cell-header {
+	width:150px;
+	padding:1em;
+	display: table-cell;
+	text-align: center;
+	text-decoration: underline;
+	font-weight: bold;
+	}
+
+h1, h2, h3 {
+	padding: 5px;
+	}
+
+a:link, a:visited, a:active {
+	text-decoration: none;
+	color:#000000;
+	}
+
+a:hover {
+	color:#FF0000;
 	}
