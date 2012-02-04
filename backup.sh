@@ -1,38 +1,21 @@
 #! /bin/sh
+# backup - by k6b - 2.4.12
 # Creates backups and moves them over via ftp
-# I'm using ncftp because I found an example 
-# passing input to it, and it seemed easier
-# than figuring out how to do it with regular ftp
-# so fuckit, I'll probably change it later.
 
 # Define some variables:
 
 ftpuser=""
 ftppass="" 
 ftphost=""
-webroot=""
 loglocation="backup.log"
-tmpdir="/dev/shm"
+tmpdir="$(mktemp -d)"
 ugroup="$i"
-dbback="mysql"
+dbback=""
+sqlpw=""
 
 # Get a list of the databases on the machine
-# currently, exclude the 'Databases' title and
-# the 'information_schema' database
 
-databases=$(mysql -e 'show databases' | cut -d'|' -f2 | sed '/information_schema/d' | sed '/Database/d')
-
-# Echo information to $loglocation
-# Uncomment this if you aren't directing cron
-# output to /dev/null I plan to add some more
-# detailed logging later
-
-#echo $(date) >> /var/log/$loglocation
-
-# Create a list of domains to backup. They should
-# be in seperate folders in your $webroot
-
-sites=$(ls /home/public_html | sed 's/\///g')
+databases=$(mysql -u root --password=$sqlpw -e 'show databases' | cut -d'|' -f2 | sed '/information_schema/d' | sed '/Database/d')
 
 # Decide what folder name to use for backup location
 # based on $1
@@ -73,19 +56,6 @@ do
 	nice -n19 tar cfpPz $tmpdir/backup/$time/$i.$(date +%m.%d.%y).tar.gz $(grep $i /etc/passwd | awk -F : '{print $6}' | sed 's/\/$//g')
 done
 
-# Use list of sites to backup domains
-
-for j in $sites
-do
-	# Echo for log output
-
-	echo compressing domain $j
-	
-	# Compress using gzip like before
-
-	nice -n19 tar cfpPz $tmpdir/backup/$time/$j.$(date +%m.%d.%y).tar.gz $webroot/$j
-done
-
 mkdir -p $tmpdir/backup/$dbback/$time
 
 # use the list of databases that we made
@@ -95,27 +65,28 @@ mkdir -p $tmpdir/backup/$dbback/$time
 for k in $databases
 do
 	echo dumping database $k
-	nice -n19 mysqldump $k > $tmpdir/backup/$dbback/$time/$k.$(date +%m.%d.%y).sql
+	nice -n19 mysqldump -u root --password=$sqlpw $k | gzip > $tmpdir/backup/$dbback/$time/$k.$(date +%m.%d.%y).sql.gz
 done
 
-# Open ncftp to transfer files to our
-# FTP backup. Fill out the variables above
-# with your information.
+list () {
+	case $1 in
+		user)
+			/bin/ls -l $tmpdir/backup/$time | awk '{print $9}'
+			;;
+		mysql)
+			/bin/ls -l $tmpdir/backup/$dbback/$time | awk '{print $9}'
+			;;
+	esac
+	}
 
-ncftp << EOF
-open -u $ftpuser -p $ftppass $ftphost
-cd /$time
-lcd $tmpdir/backup/$time
-put *
-cd /$dbback/$time
-lcd $tmpdir/backup/$dbback/$time
-put *
-bye
-EOF
+for i in $(list user)
+do
+	curl -s -T $tmpdir/backup/$time/$i ftp://$ftpuser:$ftppass@$ftphost/$time/
+done
 
-# Remove our temp file. I hope it was nothing 
-# you wanted to keep, like resolv.conf.
+for j in $(list mysql)
+do
+	curl -s -T $tmpdir/backup/$dbback/$time/$j ftp://$ftpuser:$ftppass@$ftphost/$dbback/$time/
+done
 
 rm -rf $tmpdir/backup
-
-# Profit?
