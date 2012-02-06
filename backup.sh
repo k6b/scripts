@@ -7,9 +7,7 @@
 ftpuser=""
 ftppass="" 
 ftphost=""
-loglocation="backup.log"
 tmpdir="$(mktemp -d)"
-ugroup="$i"
 dbback=""
 sqlpw=""
 
@@ -89,4 +87,4 @@ do
 	curl -s -T $tmpdir/backup/$dbback/$time/$j ftp://$ftpuser:$ftppass@$ftphost/$dbback/$time/
 done
 
-rm -rf $tmpdir/backup
+rm -rf $tmpdir
