@@ -14,7 +14,7 @@ mysqluser=""
 #####
 
 ipfind () {
-	mysql $mysqldb -u $mysqluser --password=$mysqlpw -e "SELECT ip,COUNT(*) count,country FROM bans GROUP BY ip HAVING count > 1;" | sed '/ip/d'
+	mysql $mysqldb -u $mysqluser --password=$mysqlpw -e "SELECT ip,COUNT(*) count,country FROM bans GROUP BY ip HAVING count > 1 ORDER BY count DESC;" | sed '/ip/d'
 }
 
 recent () {
