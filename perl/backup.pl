@@ -229,9 +229,9 @@ foreach $xferdbs (@dbsxfer) {
 		}
 
 foreach $olddb (@olddbs) {
-	$ftp   ->      delete("/$time/$olddb")
+	$ftp   ->      delete("/mysql/$time/$olddb")
 	                       or die "FTP: Cannot remove $oldfile\n";
-	DPrint("FTP: Deleting /$time/$olddb\n");
+	DPrint("FTP: Deleting /mysql/$time/$olddb\n");
 	}
 
 $ftp	->	quit;
