@@ -47,5 +47,3 @@ case $action in
 		echo -e "\t\t$(basename $0) authfile"
 	;;
 esac
-
-
