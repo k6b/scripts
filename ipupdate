@@ -1,0 +1,5 @@
+#!/bin/sh
+
+ip a | awk '/inet\ / {print $2}' | sed '/127/d' | cut -d/ -f1 > ip.tmp
+
+rsync -qae ssh --remove-source-files ./ip.tmp k6b@breakallthethings.com:/home/k6b/html/breakallthethings.com/ip.html
