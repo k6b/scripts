@@ -50,4 +50,4 @@ else
     echo "Not ok to export to gitweb"       # No gitweb if no
 fi
 cd ..                                       # Go back one dir
-chown -R git:git ./$1.git                   # Change ownership to git
+chown -R gitosis:gitosis ./$1.git                   # Change ownership to git
