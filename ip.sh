@@ -5,11 +5,16 @@
 # 3/6/12 - k6b@0x2a.co
 
 myip=`curl -s icanhazip.com`
-tun=`ip a | grep -o tun | uniq`
+tcun=`ip a | grep -o tun | uniq`
+
+if [[ "$myip" == "" ]]
+then
+	myip="###.##.##.###"
+fi
 
 if [[ "$tun" != "tun" ]]
 then
-	echo "local: $myip"
+	echo "<fc=red>-(</fc>$myip<fc=red>)-</fc>"
 else
-	echo "  VPN: $myip"
+	echo "<fc=green>-(</fc>$myip<fc=green>)-</fc>"
 fi
